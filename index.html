@@ -1,139 +1,262 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>D10 Roller</title>
-  <script src="https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@latest"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #2b2d42;
-      color: #edf2f4;
-      padding: 12px;
-    }
-    h1 { font-size: 1.2em; text-align: center; }
-    .row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
-    input, button {
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: none;
-      font-size: 1em;
-    }
-    input { width: 70px; background: #8d99ae; color: #1b1b1e; }
-    button { background: #ef233c; color: #fff; cursor: pointer; }
-    button.secondary { background: #8d99ae; }
-    #results { min-height: 40px; font-size: 1.4em; text-align: center; margin: 10px 0; }
-    .dice { display: inline-block; margin: 0 4px; padding: 4px 10px;
-            border-radius: 8px; background: #8d99ae; color: #1b1b1e; font-weight: bold; }
-    .success { background: #2a9d8f; color: #fff; }
-    .rerolled { text-decoration: line-through; opacity: 0.5; }
-    #total { text-align: center; font-size: 1.2em; margin-bottom: 10px; }
-  </style>
+<meta charset="UTF-8">
+<style>
+  /* ================= PAGE ================= */
+  body {
+    background: #1a1a1a;
+    color: #e8e0cc;
+    font-family: Georgia, serif;
+    margin: 0;
+    padding: 16px;
+  }
+  h2 { color: #c9a227; font-weight: normal; letter-spacing: 1px; }
+
+  /* ================= BOUTONS ================= */
+  button {
+    background: #3a3a3a;
+    border: 1px solid #6a6a6a;
+    color: #e8e0cc;
+    font-family: Georgia, serif;
+    font-size: 15px;
+    border-radius: 6px;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(1.2); }
+  #rollBtn   { background: #5a4a2a; border-color: #c9a227; }
+  #rerollBtn { background: #4a3a2a; border-color: #a08030; }
+  #addBtn    { background: #3a4a3a; border-color: #6a8a5a; }
+  #resetBtn  { background: #4a2a2a; border-color: #8a4a4a; }
+
+  input {
+    background: #242424;
+    border: 1px solid #6a6a6a;
+    color: #e8e0cc;
+    font-family: Georgia, serif;
+    border-radius: 6px;
+    padding: 6px 10px;
+    width: 70px;
+  }
+
+  /* ================= DÉS ================= */
+  #diceArea {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 60px;
+    margin: 12px 0;
+  }
+  .die {
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    background: #d8cfb8;
+    border: 3px solid #4a4a4a;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.4),
+                0 2px 4px black;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .die:hover { transform: scale(1.08); }
+
+  .die.selected {
+    border-color: #c9a227;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.4),
+                0 0 10px #c9a227;
+    transform: scale(1.08);
+  }
+  .die.fail    { background: #8a5a5a; }
+  .die.success { background: #7a9a6a; }
+
+  .die .val {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1a1208;
+    text-shadow: 0 0 3px rgba(255,255,240,0.6);
+  }
+
+  .die .remove {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    z-index: 2;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #a02020;
+    color: #fff;
+    border: 1px solid #d05050;
+    font-size: 12px;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .die .remove:hover { background: #d03030; }
+
+  /* ================= ÉCHELLE ================= */
+  #scaleBox {
+    background: #242424;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    padding: 10px;
+    min-width: 130px;
+  }
+  .scaleStep {
+    padding: 4px 8px;
+    color: #7a7a6a;
+    border-left: 3px solid #4a4a4a;
+    margin: 2px 0;
+  }
+  .scaleStep.active {
+    color: #c9a227;
+    border-left-color: #c9a227;
+    background: rgba(201,162,39,0.1);
+  }
+  .cursor { display: inline-block; width: 16px; }
+
+  /* ================= TOTAL ================= */
+  #total {
+    font-size: 32px;
+    font-weight: bold;
+  }
+  #total.success { color: #6ad06a; }
+  #total.fail    { color: #d05a5a; }
+
+  #game { display: none; flex-direction: column; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+</style>
 </head>
 <body>
-  <h1>🎲 D10 Roller</h1>
+
+<!-- ============ ÉCRAN DE DÉPART ============ -->
+<div id="setup">
+  <h2>⚔️ Jet de dés D10</h2>
+  <div class="row">
+    <label>Seuil à atteindre :
+      <input type="number" id="threshold" value="10">
+    </label>
+    <label>Nombre de dés :
+      <input type="number" id="dieCount" value="3" min="1">
+    </label>
+    <button id="startBtn">Commencer</button>
+  </div>
+</div>
+
+<!-- ============ ÉCRAN DE JEU ============ -->
+<div id="game">
+  <h2>⚔️ Jet de dés D10 — Seuil : <span id="thresholdDisplay">0</span></h2>
 
   <div class="row">
-    <label>Dés : <input type="number" id="dice" value="3" min="1" max="20"></label>
-    <button id="addBtn" class="secondary">+1 dé</button>
-    <label>Seuil : <input type="number" id="threshold" value="7" min="1" max="10"></label>
+    <div>
+      <div>Total</div>
+      <div id="total">0</div>
+    </div>
+    <div id="scaleBox"></div>
   </div>
+
+  <div id="diceArea"></div>
 
   <div class="row">
-    <button id="rollBtn">Lancer 🎲</button>
-    <button id="rerollBtn" class="secondary">Relancer les échecs</button>
-    <button id="resetBtn" class="secondary">Réinitialiser</button>
+    <button id="rollBtn">🎲 Lancer</button>
+    <button id="rerollBtn">🔄 Relancer la sélection</button>
+    <button id="addBtn">➕ Ajouter un dé</button>
+    <button id="resetBtn">↩️ Recommencer</button>
   </div>
+</div>
+<script>
+let dice = [];       // {value, selected, rolled}
+let rollCount = 0;
+let threshold = 0;
 
-  <div id="results"></div>
-  <div id="total"></div>
+const scaleLabels = ["0", "0", "1", "1+2", "1+2+3"];
 
-  <script>
-    const $ = id => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-    let rollCount = 0;      // nombre de lancers effectués
-    let rolls = [];         // historique : [[d1, d2, ...], [...]]
-    let finalResults = [];  // derniers résultats conservés
+function rollDie(d) {
+  d.value = 1 + Math.floor(Math.random() * 10);
+  d.rolled = true;
+  d.selected = false;
+}
 
-    // Lancer un D10
-    const rollDie = () => Math.floor(Math.random() * 10) + 1;
+$("startBtn").onclick = () => {
+  threshold = parseInt($("threshold").value) || 0;
+  $("thresholdDisplay").textContent = threshold;
+  const n = Math.max(1, parseInt($("dieCount").value) || 1);
+  dice = Array.from({length: n}, () => ({value: null, selected: false, rolled: false}));
+  dice.forEach(rollDie);   // ✅ les dés sont lancés dès le départ : valeurs immédiates
+  rollCount = 0;
+  $("setup").style.display = "none";
+  $("game").style.display = "flex";
+  render();
+};
 
-    function annoncer(total, seuil) {
-      const texte = total >= seuil
-        ? `🎲 Résultat : ${total} ✅ (seuil ${seuil})`
-        : `🎲 Résultat : ${total} ❌ (seuil ${seuil})`;
-      if (window.OBR) {
-        OBR.chat.sendMessage(texte).catch(() => {});
-      }
-    }
+$("resetBtn").onclick = () => {
+  $("game").style.display = "none";
+  $("setup").style.display = "block";
+};
 
-    function afficher() {
-      const seuil = parseInt($("threshold").value) || 1;
-      const div = $("results");
-      div.innerHTML = "";
-      rolls.forEach((groupe, gi) => {
-        groupe.forEach((v, di) => {
-          const span = document.createElement("span");
-          span.className = "dice" + (v >= seuil ? " success" : "");
-          if (gi < rolls.length - 1) span.classList.add("rerolled");
-          span.textContent = v;
-          span.title = "Dé n°" + (di + 1);
-          div.appendChild(span);
-        });
-      });
-      const dernier = rolls[rolls.length - 1] || [];
-      const total = dernier.reduce((a, b) => a + b, 0);
-      $("total").textContent = dernier.length
-        ? `Total (dernier lancer) : ${total}`
-        : "";
-      return { total, seuil };
-    }
+$("rollBtn").onclick = () => {
+  const selected = dice.filter(d => d.selected);
+  if (selected.length > 0) {
+    selected.forEach(rollDie);          // relance uniquement les dés sélectionnés
+  } else {
+    dice.forEach(rollDie);              // sinon : relance TOUS les dés
+  }
+  rollCount++;
+  render();
+};
 
-    function lancer() {
-      const n = parseInt($("dice").value) || 1;
-      const groupe = [];
-      for (let i = 0; i < n; i++) groupe.push(rollDie());
-      rolls.push(groupe);
-      rollCount++;
-      const { total, seuil } = afficher();
-      annoncer(total, seuil);
-    }
+$("rerollBtn").onclick = () => {
+  const selected = dice.filter(d => d.selected);
+  if (selected.length === 0) return;    // rien de sélectionné → on ne fait rien
+  selected.forEach(rollDie);
+  rollCount++;
+  render();
+};
 
-    function relancer() {
-      if (!rolls.length) return;
-      const seuil = parseInt($("threshold").value) || 1;
-      const dernier = rolls[rolls.length - 1];
-      const groupe = dernier.map(v => v >= seuil ? v : rollDie());
-      rolls.push(groupe);
-      rollCount++;
-      const { total } = afficher();
-      annoncer(total, seuil);
-    }
+$("addBtn").onclick = () => {
+  const d = {value: null, selected: false, rolled: false};
+  rollDie(d);                           // le nouveau dé a directement une valeur
+  dice.push(d);
+  render();
+};
 
-    function reinitialiser() {
-      rolls = [];
-      rollCount = 0;
-      $("results").innerHTML = "";
-      $("total").textContent = "";
-    }
+function render() {
+  const area = $("diceArea");
+  area.innerHTML = "";
+  dice.forEach((d, i) => {
+    const el = document.createElement("div");
+    let cls = "die";
+    if (d.selected) cls += " selected";
+    if (d.rolled && d.value !== null) cls += (d.value >= threshold ? " success" : " fail");
+    el.className = cls;
+    el.innerHTML = `<span class="val">${d.rolled && d.value !== null ? d.value : "?"}</span>
+      <span class="remove" title="Retirer ce dé">✕</span>`;
+    el.querySelector(".remove").onclick = e => { e.stopPropagation(); dice.splice(i,1); render(); };
+    el.onclick = () => { d.selected = !d.selected; render(); };
+    area.appendChild(el);
+  });
 
-    function initHandlers() {
-      $("rollBtn").onclick = lancer;
-      $("rerollBtn").onclick = relancer;
-      $("resetBtn").onclick = reinitialiser;
-      $("addBtn").onclick = () => {
-        const d = $("dice");
-        d.value = Math.min(20, (parseInt(d.value) || 1) + 1);
-      };
-    }
+  const rolled = dice.filter(d => d.rolled && d.value !== null);
+  const total = rolled.reduce((s,d) => s + d.value, 0);
+  const totalEl = $("total");
+  totalEl.textContent = total;
+  totalEl.className = rolled.length === 0 ? "" : (total >= threshold ? "success" : "fail");
 
-    if (window.OBR) {
-      OBR.onReady(initHandlers);
-    } else {
-      // Mode test hors de Owlbear Rodeo
-      initHandlers();
-    }
-  </script>
-</body>
-</html>
+  const box = $("scaleBox");
+  box.innerHTML = "";
+  const level = Math.min(rollCount, 4);
+  scaleLabels.forEach((label, idx) => {
+    const step = document.createElement("div");
+    step.className = "scaleStep" + (idx === level ? " active" : "");
+    step.innerHTML = `<span class="cursor">${idx === level ? "▶" : ""}</span> ${label}`;
+    box.appendChild(step);
+  });
+}
+</script>
