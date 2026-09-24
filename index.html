@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D10 Roller</title>
+  <script src="https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@latest"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #2b2d42;
+      color: #edf2f4;
+      padding: 12px;
+    }
+    h1 { font-size: 1.2em; text-align: center; }
+    .row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+    input, button {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 1em;
+    }
+    input { width: 70px; background: #8d99ae; color: #1b1b1e; }
+    button { background: #ef233c; color: #fff; cursor: pointer; }
+    button.secondary { background: #8d99ae; }
+    #results { min-height: 40px; font-size: 1.4em; text-align: center; margin: 10px 0; }
+    .dice { display: inline-block; margin: 0 4px; padding: 4px 10px;
+            border-radius: 8px; background: #8d99ae; color: #1b1b1e; font-weight: bold; }
+    .success { background: #2a9d8f; color: #fff; }
+    .rerolled { text-decoration: line-through; opacity: 0.5; }
+    #total { text-align: center; font-size: 1.2em; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>🎲 D10 Roller</h1>
+
+  <div class="row">
+    <label>Dés : <input type="number" id="dice" value="3" min="1" max="20"></label>
+    <button id="addBtn" class="secondary">+1 dé</button>
+    <label>Seuil : <input type="number" id="threshold" value="7" min="1" max="10"></label>
+  </div>
+
+  <div class="row">
+    <button id="rollBtn">Lancer 🎲</button>
+    <button id="rerollBtn" class="secondary">Relancer les échecs</button>
+    <button id="resetBtn" class="secondary">Réinitialiser</button>
+  </div>
+
+  <div id="results"></div>
+  <div id="total"></div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    let rollCount = 0;      // nombre de lancers effectués
+    let rolls = [];         // historique : [[d1, d2, ...], [...]]
+    let finalResults = [];  // derniers résultats conservés
+
+    // Lancer un D10
+    const rollDie = () => Math.floor(Math.random() * 10) + 1;
+
+    function annoncer(total, seuil) {
+      const texte = total >= seuil
+        ? `🎲 Résultat : ${total} ✅ (seuil ${seuil})`
+        : `🎲 Résultat : ${total} ❌ (seuil ${seuil})`;
+      if (window.OBR) {
+        OBR.chat.sendMessage(texte).catch(() => {});
+      }
+    }
+
+    function afficher() {
+      const seuil = parseInt($("threshold").value) || 1;
+      const div = $("results");
+      div.innerHTML = "";
+      rolls.forEach((groupe, gi) => {
+        groupe.forEach((v, di) => {
+          const span = document.createElement("span");
+          span.className = "dice" + (v >= seuil ? " success" : "");
+          if (gi < rolls.length - 1) span.classList.add("rerolled");
+          span.textContent = v;
+          span.title = "Dé n°" + (di + 1);
+          div.appendChild(span);
+        });
+      });
+      const dernier = rolls[rolls.length - 1] || [];
+      const total = dernier.reduce((a, b) => a + b, 0);
+      $("total").textContent = dernier.length
+        ? `Total (dernier lancer) : ${total}`
+        : "";
+      return { total, seuil };
+    }
+
+    function lancer() {
+      const n = parseInt($("dice").value) || 1;
+      const groupe = [];
+      for (let i = 0; i < n; i++) groupe.push(rollDie());
+      rolls.push(groupe);
+      rollCount++;
+      const { total, seuil } = afficher();
+      annoncer(total, seuil);
+    }
+
+    function relancer() {
+      if (!rolls.length) return;
+      const seuil = parseInt($("threshold").value) || 1;
+      const dernier = rolls[rolls.length - 1];
+      const groupe = dernier.map(v => v >= seuil ? v : rollDie());
+      rolls.push(groupe);
+      rollCount++;
+      const { total } = afficher();
+      annoncer(total, seuil);
+    }
+
+    function reinitialiser() {
+      rolls = [];
+      rollCount = 0;
+      $("results").innerHTML = "";
+      $("total").textContent = "";
+    }
+
+    function initHandlers() {
+      $("rollBtn").onclick = lancer;
+      $("rerollBtn").onclick = relancer;
+      $("resetBtn").onclick = reinitialiser;
+      $("addBtn").onclick = () => {
+        const d = $("dice");
+        d.value = Math.min(20, (parseInt(d.value) || 1) + 1);
+      };
+    }
+
+    if (window.OBR) {
+      OBR.onReady(initHandlers);
+    } else {
+      // Mode test hors de Owlbear Rodeo
+      initHandlers();
+    }
+  </script>
+</body>
+</html>
