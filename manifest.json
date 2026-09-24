@@ -1,7 +1,12 @@
 {
-  "manifestVersion": 2,
-  "name": "D10 Roller",
+  "name": "Lanceur de dés D10",
   "version": "1.0.0",
-  "author": "VotreNom",
-  "description": "Lanceur de D10 avec relances, seuil et échelle de risque."
+  "description": "Un lanceur de dés D10 pour vos parties",
+  "main": "index.html",
+  "icon": "icon.png",
+  "scope": "mrx",
+  "files": [
+    "index.html",
+    "icon.png"
+  ]
 }
