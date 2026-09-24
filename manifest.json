@@ -1,0 +1,7 @@
+{
+  "manifestVersion": 2,
+  "name": "D10 Roller",
+  "version": "1.0.0",
+  "author": "VotreNom",
+  "description": "Lanceur de D10 avec relances, seuil et échelle de risque."
+}
