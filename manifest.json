@@ -4,8 +4,8 @@
   "manifest_version": 1,
   "action": {
     "title": "MrX",
-    "icon": "/icon.svg",
-    "popover": "/",
+    "icon": "icon.svg",
+    "popover": "index.html",
     "height": 600,
     "width": 400
   }
