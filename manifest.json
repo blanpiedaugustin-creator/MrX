@@ -1,8 +1,9 @@
 {
-  "manifest_version": 1,
+  "manifestVersion": 1,
   "name": "MrX",
   "version": "1.0.0",
   "author": "Blanpie",
-  "main": "index.html",
+  "homepage": "https://blanpiedaugustin-creator.github.io/mrx/",
+  "entry": "index.html",
   "description": "Mon extension Owlbear Rodeo"
 }
