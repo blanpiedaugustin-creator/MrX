@@ -1,12 +1,9 @@
 {
+  "manifest_version": 1,
   "name": "MrX",
   "version": "1.0.0",
-  "description": "Un lanceur de dés D10 pour vos parties",
-  "main": "index.html",
-  "icon": "icon.png",
-  "scope": "mrx",
-  "files": [
-    "index.html",
-    "icon.png"
-  ]
+  "author": "Blanpie",
+  "entry": "index.html",
+  "description": "Mon extension Owlbear Rodeo",
+  "icon": "/icon.png"
 }
