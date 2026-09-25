@@ -1,9 +1,12 @@
 {
-  "manifest_version": 1,
   "name": "MrX",
   "version": "1.0.0",
-  "author": "Blanpie",
-  "homepage": "https://blanpiedaugustin-creator.github.io/MrX/",
-  "entry": "index.html",
-  "description": "Mon extension Owlbear Rodeo"
+  "manifest_version": 1,
+  "action": {
+    "title": "MrX",
+    "icon": "/icon.svg",
+    "popover": "/",
+    "height": 600,
+    "width": 400
+  }
 }
