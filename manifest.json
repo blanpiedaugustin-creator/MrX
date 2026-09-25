@@ -3,6 +3,6 @@
   "name": "MrX",
   "version": "1.0.0",
   "author": "Blanpie",
-  "entry": "index.html",
+  "main": "index.html",
   "description": "Mon extension Owlbear Rodeo"
 }
