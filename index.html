@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
   /* ================= PAGE ================= */
   body {
@@ -169,7 +171,25 @@
     <button id="resetBtn">↩️ Recommencer</button>
   </div>
 </div>
+
 <script>
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "⚠️ VOTRE_API_KEY_ICI",   // ⚠️ À REMPLACER (console Firebase → Paramètres du projet)
+  authDomain: "des10-c059f.firebaseapp.com",
+  databaseURL: "https://des10-c059f-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "des10-c059f",
+  storageBucket: "des10-c059f.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:aaaaaaaaaaaaaaaa"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const gameRef = db.ref("game");
+
+const myId = Math.random().toString(36).slice(2);  // identifiant de CE joueur
+
+/* ================= ÉTAT ================= */
 let dice = [];       // {value, selected, rolled}
 let rollCount = 0;
 let threshold = 0;
@@ -184,6 +204,12 @@ function rollDie(d) {
   d.selected = false;
 }
 
+/* ================= SAUVEGARDE ================= */
+function saveState() {
+  gameRef.set({ dice, rollCount, threshold, by: myId });
+}
+
+/* ================= ACTIONS ================= */
 $("startBtn").onclick = () => {
   threshold = parseInt($("threshold").value) || 0;
   $("thresholdDisplay").textContent = threshold;
@@ -194,11 +220,13 @@ $("startBtn").onclick = () => {
   $("setup").style.display = "none";
   $("game").style.display = "flex";
   render();
+  saveState();
 };
 
 $("resetBtn").onclick = () => {
   $("game").style.display = "none";
   $("setup").style.display = "block";
+  gameRef.remove();        // ✅ on efface la partie pour tout le monde
 };
 
 $("rollBtn").onclick = () => {
@@ -210,6 +238,7 @@ $("rollBtn").onclick = () => {
   }
   rollCount++;
   render();
+  saveState();
 };
 
 $("rerollBtn").onclick = () => {
@@ -218,6 +247,7 @@ $("rerollBtn").onclick = () => {
   selected.forEach(rollDie);
   rollCount++;
   render();
+  saveState();
 };
 
 $("addBtn").onclick = () => {
@@ -225,8 +255,10 @@ $("addBtn").onclick = () => {
   rollDie(d);                           // le nouveau dé a directement une valeur
   dice.push(d);
   render();
+  saveState();
 };
 
+/* ================= AFFICHAGE ================= */
 function render() {
   const area = $("diceArea");
   area.innerHTML = "";
@@ -238,8 +270,8 @@ function render() {
     el.className = cls;
     el.innerHTML = `<span class="val">${d.rolled && d.value !== null ? d.value : "?"}</span>
       <span class="remove" title="Retirer ce dé">✕</span>`;
-    el.querySelector(".remove").onclick = e => { e.stopPropagation(); dice.splice(i,1); render(); };
-    el.onclick = () => { d.selected = !d.selected; render(); };
+    el.querySelector(".remove").onclick = e => { e.stopPropagation(); dice.splice(i,1); render(); saveState(); };
+    el.onclick = () => { d.selected = !d.selected; render(); saveState(); };
     area.appendChild(el);
   });
 
@@ -259,4 +291,22 @@ function render() {
     box.appendChild(step);
   });
 }
+
+/* ================= ÉCOUTE TEMPS RÉEL ================= */
+gameRef.on("value", snap => {
+  const data = snap.val();
+  if (!data || data.by === myId) return;   // rien, ou nos propres modifications → on ignore
+  dice = data.dice || [];
+  rollCount = data.rollCount || 0;
+  threshold = data.threshold || 0;
+  if (dice.length > 0) {
+    $("setup").style.display = "none";
+    $("game").style.display = "flex";
+    $("thresholdDisplay").textContent = threshold;
+  }
+  render();
+});
 </script>
+
+</body>
+</html>
