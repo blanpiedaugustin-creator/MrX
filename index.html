@@ -13,176 +13,209 @@
     margin: 0;
     padding: 16px;
   }
-  h2 { color: #c9a227; font-weight: normal; letter-spacing: 1px; margin-top: 0; }
+  h2 { color: #c9a227; font-weight: normal; letter-spacing: 1px; }
 
-  .panel {
-    background: #262626;
-    border: 1px solid #c9a22755;
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 12px;
+  /* ================= BOUTONS ================= */
+  button {
+    background: #3a3a3a;
+    border: 1px solid #6a6a6a;
+    color: #e8e0cc;
+    font-family: Georgia, serif;
+    font-size: 15px;
+    border-radius: 6px;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(1.2); }
+  #rollBtn   { background: #5a4a2a; border-color: #c9a227; }
+  #addBtn    { background: #3a4a3a; border-color: #6a8a5a; }
+  #resetBtn  { background: #4a2a2a; border-color: #8a4a4a; }
+
+  input {
+    background: #242424;
+    border: 1px solid #6a6a6a;
+    color: #e8e0cc;
+    font-family: Georgia, serif;
+    border-radius: 6px;
+    padding: 6px 10px;
+    width: 70px;
+  }
+
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+
+  /* ================= BLOC ÉCHELLE + TOTAL ================= */
+  #scaleRow {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin: 8px 0;
+  }
+  #scaleBox {
+    background: #242424;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .scaleLine {
+    display: flex;
+    gap: 12px;
+    padding: 4px 8px;
+    color: #7a7a6a;
+    border-left: 3px solid #4a4a4a;
+    margin: 2px 0;
+  }
+  .scaleLine .count { width: 50px; text-align: right; }
+  .scaleLine .value { width: 80px; }
+  .scaleLine.header {
+    color: #c9a227;
+    border-bottom: 1px solid #4a4a4a;
+    border-left: 3px solid transparent;
+  }
+  .scaleLine.active {
+    color: #c9a227;
+    border-left-color: #c9a227;
+    background: rgba(201,162,39,0.1);
+  }
+
+  /* ================= TOTAL (à droite de l'échelle) ================= */
+  #totalBox {
+    background: #242424;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    padding: 10px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #total { font-size: 32px; font-weight: bold; }
+  #total.success { color: #6ad06a; }
+  #total.fail    { color: #d05a5a; }
+
+  /* 💀 TÊTE DE MORT */
+  #skull {
+    display: none;
+    font-size: 40px;
+    filter: drop-shadow(0 0 6px #9a6ad0);
+    animation: pulse 1s infinite;
+  }
+  #skull.visible { display: block; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
   }
 
   /* ================= DÉS ================= */
-  #game { display: flex; flex-direction: column; gap: 12px; }
-
   #diceArea {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
+    min-height: 60px;
+    margin: 12px 0;
   }
-
   .die {
-    width: 52px;
-    height: 52px;
-    border-radius: 10px;
-    background: #333;
-    border: 2px solid #555;
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    background: #d8cfb8;
+    border: 3px solid #4a4a4a;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.4),
+                0 2px 4px black;
+    cursor: pointer;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    cursor: pointer;
-    user-select: none;
-    font-size: 22px;
+    transition: transform 0.15s, box-shadow 0.15s;
   }
-  .die.selected { border-color: #c9a227; background: #3a331a; }
-  .die.success { background: #1e3a1e; border-color: #4caf50; color: #a5d6a7; }
-  .die.fail { background: #3a1e1e; border-color: #c0392b; color: #e57373; }
-  .die.violet { background: #3a1e3a; border-color: #9b59b6; color: #d7bde2; }
+  .die:hover { transform: scale(1.08); }
+  .die.selected {
+    border-color: #c9a227;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.4),
+                0 0 10px #c9a227;
+    transform: scale(1.08);
+  }
+  .die.fail    { background: #8a5a5a; }
+  .die.success { background: #7a9a6a; }
+  .die.violet  { background: #9a6ad0; border-color: #c9a2f0; }
+  .die.violet .val { color: #1a0820; }
 
-  .remove {
+  .die .val {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1a1208;
+    text-shadow: 0 0 3px rgba(255,255,240,0.6);
+  }
+
+  .die .remove {
     position: absolute;
-    top: -6px;
-    right: -6px;
-    background: #c0392b;
-    color: white;
-    border-radius: 50%;
+    top: -7px;
+    right: -7px;
+    z-index: 2;
     width: 18px;
     height: 18px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 50%;
+    background: #a02020;
+    color: #fff;
+    border: 1px solid #d05050;
+    font-size: 12px;
+    line-height: 16px;
+    text-align: center;
     cursor: pointer;
   }
-
-  /* ================= CONTRÔLES ================= */
-  .row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  input, button, select {
-    background: #333;
-    color: #e8e0cc;
-    border: 1px solid #666;
-    border-radius: 6px;
-    padding: 8px;
-    font-family: Georgia, serif;
-  }
-  button { cursor: pointer; border-color: #c9a227; }
-  button:hover { background: #3a331a; }
-  label { font-size: 14px; }
-
-  /* ================= TOTAL ================= */
-  #total {
-    font-size: 22px;
-    color: #c9a227;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .skull { font-size: 30px; display: none; }
-  .skull.show { display: inline; }
-
-  /* ================= ÉCHELLE (LANCÉS / ÉCHECS) ================= */
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    font-size: 15px;
-  }
-  th, td {
-    border: 1px solid #555;
-    padding: 6px 10px;
-    text-align: center;
-  }
-  th { color: #c9a227; font-weight: normal; }
-  tr.active {
-    background: #3a331a;
-    color: #c9a227;
-    font-weight: bold;
-  }
+  .die .remove:hover { background: #d03030; }
 </style>
 </head>
 <body>
 
-<h2>🎲 Dés de difficulté</h2>
+<!-- ============ PAGE UNIQUE ============ -->
+<h2>⚔️ Jet de dés D10</h2>
 
-<div id="game" class="panel">
+<div class="row">
+  <label>Seuil à atteindre :
+    <input type="number" id="threshold" value="10">
+  </label>
+  <label>Nombre de dés :
+    <input type="number" id="dieCount" value="3" min="1">
+  </label>
+</div>
 
-  <!-- Contrôles -->
-  <div class="row">
-    <label>Difficulté :
-      <input type="number" id="threshold" value="6" min="1" max="10" style="width:60px">
-    </label>
-    <button id="rollBtn">🎲 Lancer</button>
-    <button id="rerollBtn">↻ Relancer sélection</button>
-    <button id="addBtn">➕ Ajouter un dé</button>
-    <button id="resetBtn">♻️ Nouvelle partie</button>
+<div id="scaleRow">
+  <div id="scaleBox"></div>
+  <div id="totalBox">
+    <div>Total</div>
+    <div id="total">0</div>
+    <div id="skull" title="Échec critique !">💀</div>
   </div>
+</div>
 
-  <!-- Zone des dés -->
-  <div id="diceArea"></div>
+<div id="diceArea"></div>
 
-  <!-- Total -->
-  <div id="total">
-    Total : <span id="totalVal">0</span>
-    <span class="skull" id="skull">💀</span>
-  </div>
-
-  <!-- Échelle -->
-  <div class="panel">
-    <table>
-      <tr><th>Lancés</th><th>Échecs</th></tr>
-      <tbody id="scaleBody"></tbody>
-    </table>
-  </div>
-
+<div class="row">
+  <button id="rollBtn">🎲 Lancer</button>
+  <button id="addBtn">➕ Ajouter un dé</button>
+  <button id="resetBtn">↩️ Recommencer</button>
 </div>
 
 <script>
-/* ================= FIREBASE ================= */
+// ⚠️ REMPLACEZ par la config de VOTRE base Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCfDD1S1Wt5fgGFdRP19FEPtLvEsjNCb1k",
-  authDomain: "des10-c059f.firebaseapp.com",
-  databaseURL: "https://des10-c059f-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "des10-c059f",
-  storageBucket: "des10-c059f.firebasestorage.app",
-  messagingSenderId: "448343575723",
-  appId: "1:448343575723:web:a19146cff43f2674103bee"
+  apiKey: "VOTRE_API_KEY",
+  authDomain: "VOTRE_PROJET.firebaseapp.com",
+  databaseURL: "https://VOTRE_PROJET.firebaseio.com",
+  projectId: "VOTRE_PROJET"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const gameRef = db.ref("game");
-
-/* ================= VÉRIFICATION CONNEXION ================= */
-const connectedRef = firebase.database().ref(".info/connected");
-connectedRef.on("value", snap => {
-  if (snap.val() === true) {
-    console.log("✅ Connecté à Firebase");
-  } else {
-    console.log("❌ Déconnecté de Firebase");
-  }
-});
+const gameRef = firebase.database().ref("partie");
 
 const myId = Math.random().toString(36).slice(2);  // identifiant de CE joueur
 
 /* ================= ÉTAT ================= */
 let dice = [];       // {value, selected, rolled}
 let rollCount = 0;
-let threshold = 0;
+let threshold = 10;
+
+const scaleValues = ["0", "0", "1", "1+2", "1+2+3"];
 
 const $ = id => document.getElementById(id);
 
@@ -192,31 +225,49 @@ function rollDie(d) {
   d.selected = false;
 }
 
+/* ✅ Crée les dés manquants / retire les excédents pour correspondre au champ */
+function syncDiceCount() {
+  const n = Math.max(1, parseInt($("dieCount").value) || 1);
+  while (dice.length < n) {
+    const d = {value: null, selected: false, rolled: false};
+    rollDie(d);              // chaque dé a directement une valeur
+    dice.push(d);
+  }
+  while (dice.length > n) dice.pop();
+}
+
 /* ================= SAUVEGARDE ================= */
 function saveState() {
-  gameRef.update({ dice, rollCount, threshold, by: myId });
+  gameRef.update({           // update : n'écrase que ces champs
+    dice,
+    rollCount,
+    by: myId
+  });
 }
+
+function saveSettings() {
+  syncDiceCount();           // ✅ dés créés dès qu'on change le nombre
+  gameRef.update({
+    threshold: parseInt($("threshold").value) || 10,
+    dieCount: parseInt($("dieCount").value) || 3,
+    dice,
+    by: myId
+  });
+  render();
+}
+
+$("threshold").oninput = saveSettings;
+$("dieCount").oninput  = saveSettings;
 
 /* ================= ACTIONS ================= */
 $("rollBtn").onclick = () => {
-  // on lit la difficulté avant de lancer
-  threshold = parseInt($("threshold").value) || 0;
+  syncDiceCount();                    // sécurité : il y a toujours au moins 1 dé
   const selected = dice.filter(d => d.selected);
   if (selected.length > 0) {
-    selected.forEach(rollDie);
+    selected.forEach(rollDie);        // relance uniquement les dés sélectionnés
   } else {
-    dice.forEach(rollDie);
+    dice.forEach(rollDie);            // sinon : relance TOUS les dés
   }
-  rollCount++;
-  render();
-  saveState();
-};
-
-$("rerollBtn").onclick = () => {
-  const selected = dice.filter(d => d.selected);
-  if (selected.length === 0) return;
-  threshold = parseInt($("threshold").value) || 0;
-  selected.forEach(rollDie);
   rollCount++;
   render();
   saveState();
@@ -226,6 +277,7 @@ $("addBtn").onclick = () => {
   const d = {value: null, selected: false, rolled: false};
   rollDie(d);
   dice.push(d);
+  $("dieCount").value = dice.length;  // le champ reste cohérent
   render();
   saveState();
 };
@@ -233,45 +285,27 @@ $("addBtn").onclick = () => {
 $("resetBtn").onclick = () => {
   dice = [];
   rollCount = 0;
-  threshold = 0;
-  $("threshold").value = 6;
+  syncDiceCount();
+  $("total").textContent = "0";
+  $("total").className = "";
+  $("skull").className = "";
   render();
   gameRef.remove();
 };
 
-// clic sur un dé → sélection/désélection + retrait via ✕
-$("diceArea").addEventListener("click", e => {
-  const remove = e.target.closest(".remove");
-  if (remove) {
-    const idx = parseInt(remove.dataset.index);
-    dice.splice(idx, 1);
-    render();
-    saveState();
-    return;
-  }
-  const el = e.target.closest(".die");
-  if (el) {
-    const idx = parseInt(el.dataset.index);
-    dice[idx].selected = !dice[idx].selected;
-    render();
-    saveState();
-  }
-});
-
 /* ================= AFFICHAGE ================= */
 function render() {
-  // 🟣 Règle violette : 2e lancé → les 1, 3e → 1 et 2, 4e et plus → 1, 2 et 3
+  // 🟣 Règle violette : 3e lancé → les 1, 4e → 1 et 2, 5e et plus → 1, 2 et 3
   let violetMax = 0;
   if (rollCount >= 2) violetMax = 1;
   if (rollCount >= 3) violetMax = 1;
   if (rollCount >= 3) violetMax = 2;
   if (rollCount >= 4) violetMax = 3;
 
-  const area = $("diceArea");
-  area.innerHTML = "";
-  let total = 0;
   let hasViolet = false;
 
+  const area = $("diceArea");
+  area.innerHTML = "";
   dice.forEach((d, i) => {
     const el = document.createElement("div");
     let cls = "die";
@@ -280,56 +314,61 @@ function render() {
       if (d.value <= violetMax) {
         cls += " violet";
         hasViolet = true;
-      } else if (d.value >= threshold) {
-        cls += " success";
-        total += d.value;
       } else {
-        cls += " fail";
-        total += d.value;
+        cls += (d.value >= threshold ? " success" : " fail");
       }
     }
     el.className = cls;
-    el.dataset.index = i;
     el.innerHTML = `<span class="val">${d.rolled && d.value !== null ? d.value : "?"}</span>
-      <span class="remove" data-index="${i}" title="Retirer ce dé">✕</span>`;
+      <span class="remove" title="Retirer ce dé">✕</span>`;
+    el.querySelector(".remove").onclick = e => { e.stopPropagation(); dice.splice(i,1); $("dieCount").value = dice.length; render(); saveState(); };
+    el.onclick = () => { d.selected = !d.selected; render(); saveState(); };
     area.appendChild(el);
   });
 
-  // total + tête de mort si un dé est violet
-  $("totalVal").textContent = total;
-  $("skull").className = "skull" + (hasViolet ? " show" : "");
+  // 💀 Tête de mort visible si au moins un dé violet
+  $("skull").className = hasViolet ? "visible" : "";
 
-  renderScale();
-}
+  // Total
+  const rolled = dice.filter(d => d.rolled && d.value !== null);
+  const total = rolled.reduce((s,d) => s + d.value, 0);
+  const totalEl = $("total");
+  totalEl.textContent = total;
+  totalEl.className = rolled.length === 0 ? "" : (total >= threshold ? "success" : "fail");
 
-/* ================= ÉCHELLE LANCÉS / ÉCHECS ================= */
-function renderScale() {
-  const scaleLabels = ["0", "0", "1", "1+2", "1+2+3"];
-  const scaleColors = ["", "", "1", "1+2", "1+2+3"];
-  const body = $("scaleBody");
-  body.innerHTML = "";
-  for (let i = 0; i <= 4; i++) {
-    const row = document.createElement("tr");
-    if (i === rollCount) row.className = "active";
-    row.innerHTML = `<td>Lancé ${i}</td><td>${scaleLabels[i]}</td>`;
-    body.appendChild(row);
-  }
+  // Échelle (lancés / échecs) avec la ligne 0
+  const box = $("scaleBox");
+  box.innerHTML = "";
+
+  const header = document.createElement("div");
+  header.className = "scaleLine header";
+  header.innerHTML = `<span class="count">Lancés</span><span class="value">Échecs</span>`;
+  box.appendChild(header);
+
+  const level = Math.min(rollCount, scaleValues.length - 1);
+  scaleValues.forEach((val, idx) => {
+    const line = document.createElement("div");
+    line.className = "scaleLine" + (idx === level ? " active" : "");
+    line.innerHTML = `<span class="count">${idx}</span><span class="value">${val}</span>`;
+    box.appendChild(line);
+  });
 }
 
 /* ================= ÉCOUTE TEMPS RÉEL ================= */
 gameRef.on("value", snap => {
   const data = snap.val();
-  if (!data) return;
+  if (!data || data.by === myId) return;   // rien, ou nos propres modifications → on ignore
   dice = data.dice || [];
-  rollCount = data.rollCount || 0;
-  threshold = data.threshold || 0;
-  if (data.by !== myId) {
-    $("threshold").value = threshold;
-  }
+  rollCount = Math.max(rollCount, data.rollCount || 0);
+  threshold = data.threshold || 10;
+  $("threshold").value = threshold;
+  $("dieCount").value = data.dieCount || 3;
   render();
 });
 
-render();  // affichage initial
+/* ================= INITIALISATION ================= */
+syncDiceCount();   // ✅ les dés existent dès l'ouverture de la page
+render();
 </script>
 
 </body>
