@@ -28,7 +28,6 @@
   }
   button:hover { filter: brightness(1.2); }
   #rollBtn   { background: #5a4a2a; border-color: #c9a227; }
-  #rerollBtn { background: #4a3a2a; border-color: #a08030; }
   #addBtn    { background: #3a4a3a; border-color: #6a8a5a; }
   #resetBtn  { background: #4a2a2a; border-color: #8a4a4a; }
 
@@ -41,6 +40,58 @@
     padding: 6px 10px;
     width: 70px;
   }
+
+  /* ================= BLOC ÉCHELLE + TOTAL ================= */
+  #scaleRow {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin: 8px 0;
+  }
+  #scaleBox {
+    background: #242424;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .scaleLine {
+    display: flex;
+    gap: 12px;
+    padding: 4px 8px;
+    color: #7a7a6a;
+    border-left: 3px solid #4a4a4a;
+    margin: 2px 0;
+  }
+  .scaleLine .count { width: 50px; text-align: right; }
+  .scaleLine .value { width: 80px; }
+  .scaleLine.header {
+    color: #c9a227;
+    border-bottom: 1px solid #4a4a4a;
+    border-left: 3px solid transparent;
+  }
+  .scaleLine.active {
+    color: #c9a227;
+    border-left-color: #c9a227;
+    background: rgba(201,162,39,0.1);
+  }
+
+  /* ================= TOTAL (à droite de l'échelle) ================= */
+  #totalBox {
+    background: #242424;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    padding: 10px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #total {
+    font-size: 32px;
+    font-weight: bold;
+  }
+  #total.success { color: #6ad06a; }
+  #total.fail    { color: #d05a5a; }
 
   /* ================= DÉS ================= */
   #diceArea {
@@ -101,44 +152,15 @@
   }
   .die .remove:hover { background: #d03030; }
 
-  /* ================= ÉCHELLE ================= */
-  #scaleBox {
-    background: #242424;
-    border: 1px solid #4a4a4a;
-    border-radius: 8px;
-    padding: 10px;
-    min-width: 130px;
-  }
-  .scaleStep {
-    padding: 4px 8px;
-    color: #7a7a6a;
-    border-left: 3px solid #4a4a4a;
-    margin: 2px 0;
-  }
-  .scaleStep.active {
-    color: #c9a227;
-    border-left-color: #c9a227;
-    background: rgba(201,162,39,0.1);
-  }
-  .cursor { display: inline-block; width: 16px; }
-
-  /* ================= TOTAL ================= */
-  #total {
-    font-size: 32px;
-    font-weight: bold;
-  }
-  #total.success { color: #6ad06a; }
-  #total.fail    { color: #d05a5a; }
-
-  #game { display: none; flex-direction: column; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
 </style>
 </head>
 <body>
 
-<!-- ============ ÉCRAN DE DÉPART ============ -->
-<div id="setup">
+<!-- ============ ÉCRAN DE JEU UNIQUE ============ -->
+<div id="game" style="display: flex; flex-direction: column;">
   <h2>⚔️ Jet de dés D10</h2>
+
   <div class="row">
     <label>Seuil à atteindre :
       <input type="number" id="threshold" value="10">
@@ -146,29 +168,23 @@
     <label>Nombre de dés :
       <input type="number" id="dieCount" value="3" min="1">
     </label>
-    <button id="startBtn">Commencer</button>
   </div>
-</div>
 
-<!-- ============ ÉCRAN DE JEU ============ -->
-<div id="game">
-  <h2>⚔️ Jet de dés D10 — Seuil : <span id="thresholdDisplay">0</span></h2>
-
-  <div class="row">
-    <div>
+  <!-- Échelle (2 colonnes) avec le total à droite -->
+  <div id="scaleRow">
+    <div id="scaleBox"></div>
+    <div id="totalBox">
       <div>Total</div>
       <div id="total">0</div>
     </div>
-    <div id="scaleBox"></div>
   </div>
 
   <div id="diceArea"></div>
 
   <div class="row">
     <button id="rollBtn">🎲 Lancer</button>
-    <button id="rerollBtn">🔄 Relancer la sélection</button>
     <button id="addBtn">➕ Ajouter un dé</button>
-    <button id="resetBtn">↩️ Recommencer</button>
+    <button id="resetBtn">🗑️ Vider les dés</button>
   </div>
 </div>
 
@@ -187,14 +203,14 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const gameRef = db.ref("game");
 
-const myId = Math.random().toString(36).slice(2);  // identifiant de CE joueur
+const myId = Math.random().toString(36).slice(2);
 
 /* ================= ÉTAT ================= */
-let dice = [];       // {value, selected, rolled}
+let dice = [];
 let rollCount = 0;
-let threshold = 0;
+let threshold = 10;
 
-const scaleLabels = ["0", "0", "1", "1+2", "1+2+3"];
+const scaleValues = ["0", "0", "0", "1", "1+2", "1+2+3"];
 
 const $ = id => document.getElementById(id);
 
@@ -210,41 +226,31 @@ function saveState() {
 }
 
 /* ================= ACTIONS ================= */
-$("startBtn").onclick = () => {
+
+$("threshold").oninput = () => {
   threshold = parseInt($("threshold").value) || 0;
-  $("thresholdDisplay").textContent = threshold;
-  const n = Math.max(1, parseInt($("dieCount").value) || 1);
-  dice = Array.from({length: n}, () => ({value: null, selected: false, rolled: false}));
-  dice.forEach(rollDie);   // ✅ les dés sont lancés dès le départ : valeurs immédiates
-  rollCount = 0;
-  $("setup").style.display = "none";
-  $("game").style.display = "flex";
   render();
   saveState();
 };
 
 $("resetBtn").onclick = () => {
-  $("game").style.display = "none";
-  $("setup").style.display = "block";
-  gameRef.remove();        // ✅ on efface la partie pour tout le monde
-};
-
-$("rollBtn").onclick = () => {
-  const selected = dice.filter(d => d.selected);
-  if (selected.length > 0) {
-    selected.forEach(rollDie);          // relance uniquement les dés sélectionnés
-  } else {
-    dice.forEach(rollDie);              // sinon : relance TOUS les dés
-  }
-  rollCount++;
+  dice = [];
+  rollCount = 0;
   render();
   saveState();
 };
 
-$("rerollBtn").onclick = () => {
+$("rollBtn").onclick = () => {
+  if (dice.length === 0) {
+    const n = Math.max(1, parseInt($("dieCount").value) || 1);
+    dice = Array.from({length: n}, () => ({value: null, selected: false, rolled: false}));
+  }
   const selected = dice.filter(d => d.selected);
-  if (selected.length === 0) return;    // rien de sélectionné → on ne fait rien
-  selected.forEach(rollDie);
+  if (selected.length > 0) {
+    selected.forEach(rollDie);   // relance uniquement les dés sélectionnés
+  } else {
+    dice.forEach(rollDie);       // sinon : relance tous les dés
+  }
   rollCount++;
   render();
   saveState();
@@ -252,7 +258,7 @@ $("rerollBtn").onclick = () => {
 
 $("addBtn").onclick = () => {
   const d = {value: null, selected: false, rolled: false};
-  rollDie(d);                           // le nouveau dé a directement une valeur
+  rollDie(d);
   dice.push(d);
   render();
   saveState();
@@ -283,27 +289,29 @@ function render() {
 
   const box = $("scaleBox");
   box.innerHTML = "";
-  const level = Math.min(rollCount, 4);
-  scaleLabels.forEach((label, idx) => {
-    const step = document.createElement("div");
-    step.className = "scaleStep" + (idx === level ? " active" : "");
-    step.innerHTML = `<span class="cursor">${idx === level ? "▶" : ""}</span> ${label}`;
-    box.appendChild(step);
+
+  const header = document.createElement("div");
+  header.className = "scaleLine header";
+  header.innerHTML = `<span class="count">Lancés</span><span class="value">Échecs</span>`;
+  box.appendChild(header);
+
+  const level = Math.min(rollCount, scaleValues.length - 1);
+  scaleValues.forEach((val, idx) => {
+    const line = document.createElement("div");
+    line.className = "scaleLine" + (idx === level ? " active" : "");
+    line.innerHTML = `<span class="count">${idx}</span><span class="value">${val}</span>`;
+    box.appendChild(line);
   });
 }
 
 /* ================= ÉCOUTE TEMPS RÉEL ================= */
 gameRef.on("value", snap => {
   const data = snap.val();
-  if (!data || data.by === myId) return;   // rien, ou nos propres modifications → on ignore
+  if (!data || data.by === myId) return;
   dice = data.dice || [];
   rollCount = data.rollCount || 0;
-  threshold = data.threshold || 0;
-  if (dice.length > 0) {
-    $("setup").style.display = "none";
-    $("game").style.display = "flex";
-    $("thresholdDisplay").textContent = threshold;
-  }
+  threshold = data.threshold || 10;
+  $("threshold").value = threshold;
   render();
 });
 </script>
