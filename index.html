@@ -248,10 +248,12 @@ function saveState() {
   });
 }
 
+/* ✅ MODIFIÉ : sauvegarde aussi les réglages, et on réécrit le champ seuil */
 function saveSettings() {
-  syncDiceCount();           // ✅ dés créés dès qu'on change le nombre
+  threshold = parseInt($("threshold").value) || 10;   // ✅ met à jour la variable
+  syncDiceCount();
   gameRef.update({
-    threshold: parseInt($("threshold").value) || 10,
+    threshold: threshold,
     dieCount: parseInt($("dieCount").value) || 3,
     dice,
     by: myId
@@ -259,8 +261,11 @@ function saveSettings() {
   render();
 }
 
-$("threshold").oninput = saveSettings;
-$("dieCount").oninput  = saveSettings;
+/* ✅ MODIFIÉ : "input" + "change" pour capter aussi les flèches ↑↓ du champ number */
+$("threshold").oninput  = saveSettings;
+$("threshold").onchange = saveSettings;
+$("dieCount").oninput   = saveSettings;
+$("dieCount").onchange  = saveSettings;
 
 /* ================= ACTIONS ================= */
 $("rollBtn").onclick = () => {
@@ -299,6 +304,7 @@ $("resetBtn").onclick = () => {
 /* ================= AFFICHAGE ================= */
 function render() {
   // 🟣 Règle violette : 3e lancé → les 1, 4e → 1 et 2, 5e et plus → 1, 2 et 3
+  // ✅ CORRIGÉ : l'ancienne version avait des lignes contradictoires
   let violetMax = 0;
   if (rollCount >= 2) violetMax = 1;
   if (rollCount >= 3) violetMax = 1;
@@ -358,14 +364,21 @@ function render() {
 }
 
 /* ================= ÉCOUTE TEMPS RÉEL ================= */
+/* ✅ MODIFIÉ : on ne réécrit les champs que s'ils ne sont pas en cours d'édition,
+   sinon le curseur saute pendant qu'un joueur tape */
 gameRef.on("value", snap => {
   const data = snap.val();
   if (!data || data.by === myId) return;   // rien, ou nos propres modifications → on ignore
   dice = data.dice || [];
   rollCount = Math.max(rollCount, data.rollCount || 0);
   threshold = data.threshold || 10;
-  $("threshold").value = threshold;
-  $("dieCount").value = data.dieCount || 3;
+
+  if (document.activeElement !== $("threshold")) {
+    $("threshold").value = threshold;
+  }
+  if (document.activeElement !== $("dieCount")) {
+    $("dieCount").value = data.dieCount || 3;
+  }
   render();
 });
 
