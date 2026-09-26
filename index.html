@@ -41,6 +41,8 @@
     width: 70px;
   }
 
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+
   /* ================= BLOC ÉCHELLE + TOTAL ================= */
   #scaleRow {
     display: flex;
@@ -86,12 +88,22 @@
     align-items: center;
     justify-content: center;
   }
-  #total {
-    font-size: 32px;
-    font-weight: bold;
-  }
+  #total { font-size: 32px; font-weight: bold; }
   #total.success { color: #6ad06a; }
   #total.fail    { color: #d05a5a; }
+
+  /* 💀 TÊTE DE MORT */
+  #skull {
+    display: none;
+    font-size: 40px;
+    filter: drop-shadow(0 0 6px #9a6ad0);
+    animation: pulse 1s infinite;
+  }
+  #skull.visible { display: block; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+  }
 
   /* ================= DÉS ================= */
   #diceArea {
@@ -117,7 +129,6 @@
     transition: transform 0.15s, box-shadow 0.15s;
   }
   .die:hover { transform: scale(1.08); }
-
   .die.selected {
     border-color: #c9a227;
     box-shadow: inset 0 0 8px rgba(0,0,0,0.4),
@@ -126,6 +137,8 @@
   }
   .die.fail    { background: #8a5a5a; }
   .die.success { background: #7a9a6a; }
+  .die.violet  { background: #9a6ad0; border-color: #c9a2f0; }
+  .die.violet .val { color: #1a0820; }
 
   .die .val {
     font-size: 22px;
@@ -151,66 +164,58 @@
     cursor: pointer;
   }
   .die .remove:hover { background: #d03030; }
-
-  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
 </style>
 </head>
 <body>
 
-<!-- ============ ÉCRAN DE JEU UNIQUE ============ -->
-<div id="game" style="display: flex; flex-direction: column;">
-  <h2>⚔️ Jet de dés D10</h2>
+<!-- ============ PAGE UNIQUE ============ -->
+<h2>⚔️ Jet de dés D10</h2>
 
-  <div class="row">
-    <label>Seuil à atteindre :
-      <input type="number" id="threshold" value="10">
-    </label>
-    <label>Nombre de dés :
-      <input type="number" id="dieCount" value="3" min="1">
-    </label>
-  </div>
+<div class="row">
+  <label>Seuil à atteindre :
+    <input type="number" id="threshold" value="10">
+  </label>
+  <label>Nombre de dés :
+    <input type="number" id="dieCount" value="3" min="1">
+  </label>
+</div>
 
-  <!-- Échelle (2 colonnes) avec le total à droite -->
-  <div id="scaleRow">
-    <div id="scaleBox"></div>
-    <div id="totalBox">
-      <div>Total</div>
-      <div id="total">0</div>
-    </div>
-  </div>
-
-  <div id="diceArea"></div>
-
-  <div class="row">
-    <button id="rollBtn">🎲 Lancer</button>
-    <button id="addBtn">➕ Ajouter un dé</button>
-    <button id="resetBtn">🗑️ Vider les dés</button>
+<div id="scaleRow">
+  <div id="scaleBox"></div>
+  <div id="totalBox">
+    <div>Total</div>
+    <div id="total">0</div>
+    <div id="skull" title="Échec critique !">💀</div>
   </div>
 </div>
 
+<div id="diceArea"></div>
+
+<div class="row">
+  <button id="rollBtn">🎲 Lancer</button>
+  <button id="addBtn">➕ Ajouter un dé</button>
+  <button id="resetBtn">↩️ Recommencer</button>
+</div>
+
 <script>
-/* ================= FIREBASE ================= */
+// ⚠️ REMPLACEZ par la config de VOTRE base Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCfDD1S1Wt5fgGFdRP19FEPtLvEsjNCb1k",
-  authDomain: "des10-c059f.firebaseapp.com",
-  databaseURL: "https://des10-c059f-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "des10-c059f",
-  storageBucket: "des10-c059f.firebasestorage.app",
-  messagingSenderId: "448343575723",
-  appId: "1:448343575723:web:a19146cff43f2674103bee"
+  apiKey: "VOTRE_API_KEY",
+  authDomain: "VOTRE_PROJET.firebaseapp.com",
+  databaseURL: "https://VOTRE_PROJET.firebaseio.com",
+  projectId: "VOTRE_PROJET"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const gameRef = db.ref("game");
+const gameRef = firebase.database().ref("partie");
 
-const myId = Math.random().toString(36).slice(2);
+const myId = Math.random().toString(36).slice(2);  // identifiant de CE joueur
 
 /* ================= ÉTAT ================= */
-let dice = [];
+let dice = [];       // {value, selected, rolled}
 let rollCount = 0;
 let threshold = 10;
 
-const scaleValues = ["0", "0", "0", "1", "1+2", "1+2+3"];
+const scaleValues = ["0", "0", "1", "1+2", "1+2+3"];
 
 const $ = id => document.getElementById(id);
 
@@ -220,36 +225,48 @@ function rollDie(d) {
   d.selected = false;
 }
 
-/* ================= SAUVEGARDE ================= */
-function saveState() {
-  gameRef.set({ dice, rollCount, threshold, by: myId });
+/* ✅ Crée les dés manquants / retire les excédents pour correspondre au champ */
+function syncDiceCount() {
+  const n = Math.max(1, parseInt($("dieCount").value) || 1);
+  while (dice.length < n) {
+    const d = {value: null, selected: false, rolled: false};
+    rollDie(d);              // chaque dé a directement une valeur
+    dice.push(d);
+  }
+  while (dice.length > n) dice.pop();
 }
 
+/* ================= SAUVEGARDE ================= */
+function saveState() {
+  gameRef.update({           // update : n'écrase que ces champs
+    dice,
+    rollCount,
+    by: myId
+  });
+}
+
+function saveSettings() {
+  syncDiceCount();           // ✅ dés créés dès qu'on change le nombre
+  gameRef.update({
+    threshold: parseInt($("threshold").value) || 10,
+    dieCount: parseInt($("dieCount").value) || 3,
+    dice,
+    by: myId
+  });
+  render();
+}
+
+$("threshold").oninput = saveSettings;
+$("dieCount").oninput  = saveSettings;
+
 /* ================= ACTIONS ================= */
-
-$("threshold").oninput = () => {
-  threshold = parseInt($("threshold").value) || 0;
-  render();
-  saveState();
-};
-
-$("resetBtn").onclick = () => {
-  dice = [];
-  rollCount = 0;
-  render();
-  saveState();
-};
-
 $("rollBtn").onclick = () => {
-  if (dice.length === 0) {
-    const n = Math.max(1, parseInt($("dieCount").value) || 1);
-    dice = Array.from({length: n}, () => ({value: null, selected: false, rolled: false}));
-  }
+  syncDiceCount();                    // sécurité : il y a toujours au moins 1 dé
   const selected = dice.filter(d => d.selected);
   if (selected.length > 0) {
-    selected.forEach(rollDie);   // relance uniquement les dés sélectionnés
+    selected.forEach(rollDie);        // relance uniquement les dés sélectionnés
   } else {
-    dice.forEach(rollDie);       // sinon : relance tous les dés
+    dice.forEach(rollDie);            // sinon : relance TOUS les dés
   }
   rollCount++;
   render();
@@ -260,33 +277,66 @@ $("addBtn").onclick = () => {
   const d = {value: null, selected: false, rolled: false};
   rollDie(d);
   dice.push(d);
+  $("dieCount").value = dice.length;  // le champ reste cohérent
   render();
   saveState();
 };
 
+$("resetBtn").onclick = () => {
+  dice = [];
+  rollCount = 0;
+  syncDiceCount();
+  $("total").textContent = "0";
+  $("total").className = "";
+  $("skull").className = "";
+  render();
+  gameRef.remove();
+};
+
 /* ================= AFFICHAGE ================= */
 function render() {
+  // 🟣 Règle violette : 3e lancé → les 1, 4e → 1 et 2, 5e et plus → 1, 2 et 3
+  let violetMax = 0;
+  if (rollCount >= 2) violetMax = 1;
+  if (rollCount >= 3) violetMax = 1;
+  if (rollCount >= 3) violetMax = 2;
+  if (rollCount >= 4) violetMax = 3;
+
+  let hasViolet = false;
+
   const area = $("diceArea");
   area.innerHTML = "";
   dice.forEach((d, i) => {
     const el = document.createElement("div");
     let cls = "die";
     if (d.selected) cls += " selected";
-    if (d.rolled && d.value !== null) cls += (d.value >= threshold ? " success" : " fail");
+    if (d.rolled && d.value !== null) {
+      if (d.value <= violetMax) {
+        cls += " violet";
+        hasViolet = true;
+      } else {
+        cls += (d.value >= threshold ? " success" : " fail");
+      }
+    }
     el.className = cls;
     el.innerHTML = `<span class="val">${d.rolled && d.value !== null ? d.value : "?"}</span>
       <span class="remove" title="Retirer ce dé">✕</span>`;
-    el.querySelector(".remove").onclick = e => { e.stopPropagation(); dice.splice(i,1); render(); saveState(); };
+    el.querySelector(".remove").onclick = e => { e.stopPropagation(); dice.splice(i,1); $("dieCount").value = dice.length; render(); saveState(); };
     el.onclick = () => { d.selected = !d.selected; render(); saveState(); };
     area.appendChild(el);
   });
 
+  // 💀 Tête de mort visible si au moins un dé violet
+  $("skull").className = hasViolet ? "visible" : "";
+
+  // Total
   const rolled = dice.filter(d => d.rolled && d.value !== null);
   const total = rolled.reduce((s,d) => s + d.value, 0);
   const totalEl = $("total");
   totalEl.textContent = total;
   totalEl.className = rolled.length === 0 ? "" : (total >= threshold ? "success" : "fail");
 
+  // Échelle (lancés / échecs) avec la ligne 0
   const box = $("scaleBox");
   box.innerHTML = "";
 
@@ -307,13 +357,18 @@ function render() {
 /* ================= ÉCOUTE TEMPS RÉEL ================= */
 gameRef.on("value", snap => {
   const data = snap.val();
-  if (!data || data.by === myId) return;
+  if (!data || data.by === myId) return;   // rien, ou nos propres modifications → on ignore
   dice = data.dice || [];
-  rollCount = data.rollCount || 0;
+  rollCount = Math.max(rollCount, data.rollCount || 0);
   threshold = data.threshold || 10;
   $("threshold").value = threshold;
+  $("dieCount").value = data.dieCount || 3;
   render();
 });
+
+/* ================= INITIALISATION ================= */
+syncDiceCount();   // ✅ les dés existent dès l'ouverture de la page
+render();
 </script>
 
 </body>
