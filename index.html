@@ -121,7 +121,7 @@ let dice = [];
 let rollCount = 0;
 let threshold = 10;
 
-const scaleValues = ["0", "0", "1", "1+2", "1+2+3"];
+const scaleValues = ["0", "0", "1", "1+2", "1+2+3", "1+2+3+4", "1+2+3+4+5"];
 const $ = id => document.getElementById(id);
 
 /* ✅ Clé unique : de plus en plus grande à chaque écriture.
@@ -208,6 +208,8 @@ function render() {
   if (rollCount >= 3) violetMax = 1;
   if (rollCount >= 3) violetMax = 2;
   if (rollCount >= 4) violetMax = 3;
+  if (rollCount >= 5) violetMax = 4;
+  if (rollCount >= 6) violetMax = 5;
 
   let hasViolet = false;
 
