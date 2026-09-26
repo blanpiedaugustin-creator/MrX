@@ -5,26 +5,13 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
-  /* ================= PAGE ================= */
-  body {
-    background: #1a1a1a;
-    color: #e8e0cc;
-    font-family: Georgia, serif;
-    margin: 0;
-    padding: 16px;
-  }
+  body { background: #1a1a1a; color: #e8e0cc; font-family: Georgia, serif; margin: 0; padding: 16px; }
   h2 { color: #c9a227; font-weight: normal; letter-spacing: 1px; }
 
-  /* ================= BOUTONS ================= */
   button {
-    background: #3a3a3a;
-    border: 1px solid #6a6a6a;
-    color: #e8e0cc;
-    font-family: Georgia, serif;
-    font-size: 15px;
-    border-radius: 6px;
-    padding: 8px 14px;
-    cursor: pointer;
+    background: #3a3a3a; border: 1px solid #6a6a6a; color: #e8e0cc;
+    font-family: Georgia, serif; font-size: 15px; border-radius: 6px;
+    padding: 8px 14px; cursor: pointer;
   }
   button:hover { filter: brightness(1.2); }
   #rollBtn   { background: #5a4a2a; border-color: #c9a227; }
@@ -32,143 +19,60 @@
   #resetBtn  { background: #4a2a2a; border-color: #8a4a4a; }
 
   input {
-    background: #242424;
-    border: 1px solid #6a6a6a;
-    color: #e8e0cc;
-    font-family: Georgia, serif;
-    border-radius: 6px;
-    padding: 6px 10px;
-    width: 70px;
+    background: #242424; border: 1px solid #6a6a6a; color: #e8e0cc;
+    font-family: Georgia, serif; border-radius: 6px; padding: 6px 10px; width: 70px;
   }
 
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
 
-  /* ================= BLOC ÉCHELLE + TOTAL ================= */
-  #scaleRow {
-    display: flex;
-    align-items: stretch;
-    gap: 10px;
-    margin: 8px 0;
-  }
-  #scaleBox {
-    background: #242424;
-    border: 1px solid #4a4a4a;
-    border-radius: 8px;
-    padding: 10px;
-  }
+  #scaleRow { display: flex; align-items: stretch; gap: 10px; margin: 8px 0; }
+  #scaleBox { background: #242424; border: 1px solid #4a4a4a; border-radius: 8px; padding: 10px; }
   .scaleLine {
-    display: flex;
-    gap: 12px;
-    padding: 4px 8px;
-    color: #7a7a6a;
-    border-left: 3px solid #4a4a4a;
-    margin: 2px 0;
+    display: flex; gap: 12px; padding: 4px 8px; color: #7a7a6a;
+    border-left: 3px solid #4a4a4a; margin: 2px 0;
   }
   .scaleLine .count { width: 50px; text-align: right; }
   .scaleLine .value { width: 80px; }
-  .scaleLine.header {
-    color: #c9a227;
-    border-bottom: 1px solid #4a4a4a;
-    border-left: 3px solid transparent;
-  }
-  .scaleLine.active {
-    color: #c9a227;
-    border-left-color: #c9a227;
-    background: rgba(201,162,39,0.1);
-  }
+  .scaleLine.header { color: #c9a227; border-bottom: 1px solid #4a4a4a; border-left: 3px solid transparent; }
+  .scaleLine.active { color: #c9a227; border-left-color: #c9a227; background: rgba(201,162,39,0.1); }
 
-  /* ================= TOTAL (à droite de l'échelle) ================= */
   #totalBox {
-    background: #242424;
-    border: 1px solid #4a4a4a;
-    border-radius: 8px;
-    padding: 10px 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    background: #242424; border: 1px solid #4a4a4a; border-radius: 8px;
+    padding: 10px 20px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
   }
   #total { font-size: 32px; font-weight: bold; }
   #total.success { color: #6ad06a; }
   #total.fail    { color: #d05a5a; }
 
-  /* 💀 TÊTE DE MORT */
-  #skull {
-    display: none;
-    font-size: 40px;
-    filter: drop-shadow(0 0 6px #9a6ad0);
-    animation: pulse 1s infinite;
-  }
+  #skull { display: none; font-size: 40px; filter: drop-shadow(0 0 6px #9a6ad0); animation: pulse 1s infinite; }
   #skull.visible { display: block; }
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.15); }
-  }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
-  /* ================= DÉS ================= */
-  #diceArea {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    min-height: 60px;
-    margin: 12px 0;
-  }
+  #diceArea { display: flex; flex-wrap: wrap; gap: 10px; min-height: 60px; margin: 12px 0; }
   .die {
-    width: 56px;
-    height: 56px;
-    border-radius: 6px;
-    background: #d8cfb8;
-    border: 3px solid #4a4a4a;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.4),
-                0 2px 4px black;
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s, box-shadow 0.15s;
+    width: 56px; height: 56px; border-radius: 6px; background: #d8cfb8;
+    border: 3px solid #4a4a4a; box-shadow: inset 0 0 8px rgba(0,0,0,0.4), 0 2px 4px black;
+    cursor: pointer; position: relative; display: flex; align-items: center;
+    justify-content: center; transition: transform 0.15s, box-shadow 0.15s;
   }
   .die:hover { transform: scale(1.08); }
-  .die.selected {
-    border-color: #c9a227;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.4),
-                0 0 10px #c9a227;
-    transform: scale(1.08);
-  }
+  .die.selected { border-color: #c9a227; box-shadow: inset 0 0 8px rgba(0,0,0,0.4), 0 0 10px #c9a227; transform: scale(1.08); }
   .die.fail    { background: #8a5a5a; }
   .die.success { background: #7a9a6a; }
   .die.violet  { background: #9a6ad0; border-color: #c9a2f0; }
   .die.violet .val { color: #1a0820; }
-
-  .die .val {
-    font-size: 22px;
-    font-weight: bold;
-    color: #1a1208;
-    text-shadow: 0 0 3px rgba(255,255,240,0.6);
-  }
-
+  .die .val { font-size: 22px; font-weight: bold; color: #1a1208; text-shadow: 0 0 3px rgba(255,255,240,0.6); }
   .die .remove {
-    position: absolute;
-    top: -7px;
-    right: -7px;
-    z-index: 2;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #a02020;
-    color: #fff;
-    border: 1px solid #d05050;
-    font-size: 12px;
-    line-height: 16px;
-    text-align: center;
-    cursor: pointer;
+    position: absolute; top: -7px; right: -7px; z-index: 2; width: 18px; height: 18px;
+    border-radius: 50%; background: #a02020; color: #fff; border: 1px solid #d05050;
+    font-size: 12px; line-height: 16px; text-align: center; cursor: pointer;
   }
   .die .remove:hover { background: #d03030; }
 </style>
 </head>
 <body>
 
-<!-- ============ PAGE UNIQUE ============ -->
 <h2>⚔️ Jet de dés D10</h2>
 
 <div class="row">
@@ -198,7 +102,6 @@
 </div>
 
 <script>
-// ⚠️ REMPLACEZ par la config de VOTRE base Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCfDD1S1Wt5fgGFdRP19FEPtLvEsjNCb1k",
   authDomain: "des10-c059f.firebaseapp.com",
@@ -211,16 +114,19 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const gameRef = firebase.database().ref("partie");
 
-const myId = Math.random().toString(36).slice(2);  // identifiant de CE joueur
+const myId = Math.random().toString(36).slice(2);
 
 /* ================= ÉTAT ================= */
-let dice = [];       // {value, selected, rolled}
+let dice = [];
 let rollCount = 0;
 let threshold = 10;
 
 const scaleValues = ["0", "0", "1", "1+2", "1+2+3"];
-
 const $ = id => document.getElementById(id);
+
+/* ✅ Clé unique : de plus en plus grande à chaque écriture.
+   Ça permet de savoir quelle écriture est la plus récente. */
+function stamp() { return Date.now(); }
 
 function rollDie(d) {
   d.value = 1 + Math.floor(Math.random() * 10);
@@ -228,54 +134,49 @@ function rollDie(d) {
   d.selected = false;
 }
 
-/* ✅ Crée les dés manquants / retire les excédents pour correspondre au champ */
 function syncDiceCount() {
   const n = Math.max(1, parseInt($("dieCount").value) || 1);
   while (dice.length < n) {
     const d = {value: null, selected: false, rolled: false};
-    rollDie(d);              // chaque dé a directement une valeur
+    rollDie(d);
     dice.push(d);
   }
   while (dice.length > n) dice.pop();
 }
 
-/* ================= SAUVEGARDE ================= */
+/* ================= SAUVEGARDE =================
+   ✅ On écrit TOUT l'état d'un seul coup avec set().
+   Plus de "update" partiel → plus de vieilles données qui traînent. */
 function saveState() {
-  gameRef.update({           // update : n'écrase que ces champs
+  gameRef.set({
     dice,
     rollCount,
-    by: myId
+    threshold: parseInt($("threshold").value) || 10,
+    dieCount: dice.length,
+    by: myId,
+    ts: stamp()
   });
 }
 
-/* ✅ MODIFIÉ : sauvegarde aussi les réglages, et on réécrit le champ seuil */
-function saveSettings() {
-  threshold = parseInt($("threshold").value) || 10;   // ✅ met à jour la variable
+/* ================= CHAMPS ================= */
+/* Les deux champs écrivent tout l'état à chaque modification. */
+function onFieldChange() {
+  threshold = parseInt($("threshold").value) || 10;
   syncDiceCount();
-  gameRef.update({
-    threshold: threshold,
-    dieCount: parseInt($("dieCount").value) || 3,
-    dice,
-    by: myId
-  });
   render();
+  saveState();
 }
-
-/* ✅ MODIFIÉ : "input" + "change" pour capter aussi les flèches ↑↓ du champ number */
-$("threshold").oninput  = saveSettings;
-$("threshold").onchange = saveSettings;
-$("dieCount").oninput   = saveSettings;
-$("dieCount").onchange  = saveSettings;
+$("threshold").addEventListener("input", onFieldChange);
+$("threshold").addEventListener("change", onFieldChange);
+$("dieCount").addEventListener("input", onFieldChange);
+$("dieCount").addEventListener("change", onFieldChange);
 
 /* ================= ACTIONS ================= */
 $("rollBtn").onclick = () => {
-  syncDiceCount();                    // sécurité : il y a toujours au moins 1 dé
+  syncDiceCount();
   const selected = dice.filter(d => d.selected);
-  if (selected.length > 0) {
-    selected.forEach(rollDie);        // relance uniquement les dés sélectionnés
-  } else {
-    dice.forEach(rollDie);            // sinon : relance TOUS les dés
-  }
+  if (selected.length > 0) selected.forEach(rollDie);
+  else dice.forEach(rollDie);
   rollCount++;
   render();
   saveState();
@@ -285,7 +186,7 @@ $("addBtn").onclick = () => {
   const d = {value: null, selected: false, rolled: false};
   rollDie(d);
   dice.push(d);
-  $("dieCount").value = dice.length;  // le champ reste cohérent
+  $("dieCount").value = dice.length;
   render();
   saveState();
 };
@@ -293,18 +194,15 @@ $("addBtn").onclick = () => {
 $("resetBtn").onclick = () => {
   dice = [];
   rollCount = 0;
+  threshold = parseInt($("threshold").value) || 10;
   syncDiceCount();
-  $("total").textContent = "0";
-  $("total").className = "";
-  $("skull").className = "";
   render();
-  gameRef.remove();
+  saveState();     // ✅ on réécrit un état propre au lieu de remove()
 };
 
 /* ================= AFFICHAGE ================= */
 function render() {
-  // 🟣 Règle violette : 3e lancé → les 1, 4e → 1 et 2, 5e et plus → 1, 2 et 3
-  // ✅ CORRIGÉ : l'ancienne version avait des lignes contradictoires
+  // 🟣 Règle violette
   let violetMax = 0;
   if (rollCount >= 2) violetMax = 1;
   if (rollCount >= 3) violetMax = 1;
@@ -320,35 +218,33 @@ function render() {
     let cls = "die";
     if (d.selected) cls += " selected";
     if (d.rolled && d.value !== null) {
-      if (d.value <= violetMax) {
-        cls += " violet";
-        hasViolet = true;
-      } else {
-        cls += (d.value >= threshold ? " success" : " fail");
-      }
+      if (d.value <= violetMax) { cls += " violet"; hasViolet = true; }
+      else cls += (d.value >= threshold ? " success" : " fail");
     }
     el.className = cls;
     el.innerHTML = `<span class="val">${d.rolled && d.value !== null ? d.value : "?"}</span>
       <span class="remove" title="Retirer ce dé">✕</span>`;
-    el.querySelector(".remove").onclick = e => { e.stopPropagation(); dice.splice(i,1); $("dieCount").value = dice.length; render(); saveState(); };
+    el.querySelector(".remove").onclick = e => {
+      e.stopPropagation();
+      dice.splice(i, 1);
+      $("dieCount").value = dice.length;
+      render();
+      saveState();
+    };
     el.onclick = () => { d.selected = !d.selected; render(); saveState(); };
     area.appendChild(el);
   });
 
-  // 💀 Tête de mort visible si au moins un dé violet
   $("skull").className = hasViolet ? "visible" : "";
 
-  // Total
   const rolled = dice.filter(d => d.rolled && d.value !== null);
   const total = rolled.reduce((s,d) => s + d.value, 0);
   const totalEl = $("total");
   totalEl.textContent = total;
   totalEl.className = rolled.length === 0 ? "" : (total >= threshold ? "success" : "fail");
 
-  // Échelle (lancés / échecs) avec la ligne 0
   const box = $("scaleBox");
   box.innerHTML = "";
-
   const header = document.createElement("div");
   header.className = "scaleLine header";
   header.innerHTML = `<span class="count">Lancés</span><span class="value">Échecs</span>`;
@@ -363,28 +259,27 @@ function render() {
   });
 }
 
-/* ================= ÉCOUTE TEMPS RÉEL ================= */
-/* ✅ MODIFIÉ : on ne réécrit les champs que s'ils ne sont pas en cours d'édition,
-   sinon le curseur saute pendant qu'un joueur tape */
+/* ================= ÉCOUTE TEMPS RÉEL =================
+   ✅ TOUT est appliqué à chaque réception : dés, lancés, seuil, nombre de dés.
+   Les champs ne sont réécrits que si le joueur n'est pas en train de taper dedans. */
 gameRef.on("value", snap => {
   const data = snap.val();
-  if (!data || data.by === myId) return;   // rien, ou nos propres modifications → on ignore
+  if (!data || data.by === myId) return;
+
   dice = data.dice || [];
-  rollCount = Math.max(rollCount, data.rollCount || 0);
+  rollCount = data.rollCount || 0;          // ✅ plus de Math.max : la valeur distante fait foi
   threshold = data.threshold || 10;
 
-  if (document.activeElement !== $("threshold")) {
-    $("threshold").value = threshold;
-  }
-  if (document.activeElement !== $("dieCount")) {
-    $("dieCount").value = data.dieCount || 3;
-  }
+  if (document.activeElement !== $("threshold")) $("threshold").value = threshold;
+  if (document.activeElement !== $("dieCount"))  $("dieCount").value = Math.max(1, dice.length);
+
   render();
 });
 
 /* ================= INITIALISATION ================= */
-syncDiceCount();   // ✅ les dés existent dès l'ouverture de la page
+syncDiceCount();
 render();
+saveState();     // ✅ publie l'état initial → les joueurs qui arrivent reçoivent tout
 </script>
 
 </body>
